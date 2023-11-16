@@ -1,6 +1,6 @@
 1.配置golang环境
 
-2.克隆本项目：`git clone `
+2.克隆本项目：`git clone https://gitee.com/michaelmaugustus/navidrome-manager.git `
 
 3.进入项目目录：`cd MusicManager`
 
