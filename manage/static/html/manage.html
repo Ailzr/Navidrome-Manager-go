@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/manage/static/css/base.css">
+    <link rel="stylesheet" href="/manage/static/css/manage.css">
+    <title>管理页面</title>
+</head>
+<body>
+    <div id="main">
+        <h1 id="title">音乐列表</h1>
+        <button id="refresh-btn">刷新</button>
+        <button id="clear">清空</button>
+        <input type="file" id="fileInput" style="display:none;" multiple/>
+        <button id="choiceBtn" onclick="document.getElementById('fileInput').click();">选择文件</button>
+        <button id="uploadBtn" onclick="uploadFile()">上传文件</button>
+        <div id="status"></div>
+        <ul id="music-list"></ul>
+        <script src="/manage/static/js/manage.js"></script>
+    </div>
+</body>
+</html>
