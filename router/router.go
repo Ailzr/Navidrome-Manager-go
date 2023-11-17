@@ -11,7 +11,7 @@ func SetRouter() {
 
 	r.LoadHTMLGlob("./manage/static/html/*")
 	r.Static("/manage/static", "./manage/static")
-	r.MaxMultipartMemory = 32 << 20
+	r.MaxMultipartMemory = 64 << 20 //设置上传文件最大为64MB
 
 	rManage := r.Group("/manage")
 	{

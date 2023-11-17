@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"time"
 )
 
 func Manage(c *gin.Context) {
@@ -19,12 +21,11 @@ func Manage(c *gin.Context) {
 func UploadMusicFile(c *gin.Context) {
 
 	folderPath := viper.GetString("savePath")
-	fileName := c.Query("file-name")
 
-	file, err := c.FormFile(fileName)
+	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    200,
+			"code":    -1,
 			"message": err.Error(),
 		})
 		return
@@ -32,8 +33,8 @@ func UploadMusicFile(c *gin.Context) {
 
 	if err := c.SaveUploadedFile(file, folderPath+"/"+file.Filename); err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"code":    200,
-			"message": err.Error(),
+			"code":    -1,
+			"message": "存储文件发生错误",
 		})
 		return
 	}
@@ -42,6 +43,45 @@ func UploadMusicFile(c *gin.Context) {
 		"code":    200,
 		"message": "文件上传成功",
 	})
+	//form, err := c.MultipartForm()
+	//
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"code":    200,
+	//		"message": err.Error(),
+	//	})
+	//	return
+	//}
+	//
+	//files := form.File["file"]
+	//var failFiles []string
+	//Fail := false
+	//
+	//for _, file := range files {
+	//	filename := filepath.Join(folderPath, file.Filename)
+	//	if err := c.SaveUploadedFile(file, filename); err != nil {
+	//		fmt.Println(err.Error())
+	//		failFiles = append(failFiles, file.Filename)
+	//		Fail = true
+	//		continue
+	//	}
+	//}
+
+	//if !Fail {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"code":    200,
+	//		"message": "文件上传成功",
+	//	})
+	//	return
+	//}
+	//
+	//c.JSON(http.StatusOK, gin.H{
+	//	"code":    -1,
+	//	"message": "部分文件上传失败",
+	//	"data":    failFiles,
+	//})
+
 }
 
 func DeleteMusicFile(c *gin.Context) {
@@ -74,21 +114,26 @@ func DeleteMusicFile(c *gin.Context) {
 	})
 }
 
+type FileInfo struct {
+	Name    string    `json:"name"`
+	ModTime time.Time `json:"mod_time"`
+}
+
 func GetMusicList(c *gin.Context) {
 	folderPath := viper.GetString("savePath")
-	length := len(folderPath + "\\")
 
-	var files []string
-	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			files = append(files, path)
-		}
-		return nil
-	})
+	//var files []string
+	//err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if !info.IsDir() {
+	//		files = append(files, path)
+	//	}
+	//	return nil
+	//})
 
+	files, err := os.ReadDir(folderPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    -1,
@@ -97,13 +142,38 @@ func GetMusicList(c *gin.Context) {
 		return
 	}
 
-	for i, f := range files {
-		files[i] = f[length:]
+	var fileInfos []FileInfo
+
+	for _, f := range files {
+		filePath := filepath.Join(folderPath + "/" + f.Name())
+		fileStat, err := os.Stat(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code":    -1,
+				"message": "获取音乐列表失败",
+			})
+			return
+		}
+		fileInfo := FileInfo{f.Name(), fileStat.ModTime()}
+		fileInfos = append(fileInfos, fileInfo)
+	}
+
+	sort.Sort(ByModTime(fileInfos))
+
+	var filesName []string
+	for _, fi := range fileInfos {
+		filesName = append(filesName, fi.Name)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    200,
 		"message": "获取音乐列表成功",
-		"data":    files,
+		"data":    filesName,
 	})
 }
+
+type ByModTime []FileInfo
+
+func (bmt ByModTime) Len() int           { return len(bmt) }
+func (bmt ByModTime) Swap(i, j int)      { bmt[i], bmt[j] = bmt[j], bmt[i] }
+func (bmt ByModTime) Less(i, j int) bool { return bmt[i].ModTime.After(bmt[j].ModTime) }

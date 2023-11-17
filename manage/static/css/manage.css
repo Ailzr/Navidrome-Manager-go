@@ -43,6 +43,27 @@ body {
     background-color: #373C40;
 }
 
+.uploading {
+    width: 10px;
+    height: 10px;
+    background-color: #6BBFED;
+    display: inline-block;
+}
+
+.uploadSuccess {
+    width: 10px;
+    height: 10px;
+    background-color: greenyellow;
+    display: inline-block;
+}
+
+.uploadFail {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    display: inline-block;
+}
+
 #music-list {
     color: white;
     width: 88vw;

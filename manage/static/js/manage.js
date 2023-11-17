@@ -156,27 +156,58 @@ document.getElementById('clear').addEventListener('click', function() {
     musicList.innerHTML = '';
 })
 
+// const fileInput = document.getElementById('fileInput');
+// const files = fileInput.files;
+//
+// for (let i = 0; i < files.length;i++){
+//     const formData = new FormData();
+//     const uploadUrl = "/manage/upload-music?file-name=" + files[i].name.substring(0, files[i].name.length - 4);
+//     formData.append(files[i].name.substring(0, files[i].name.length - 4), files[i])
+//     let xhr3 = new XMLHttpRequest();
+//     xhr3.open('POST', uploadUrl, true);
+//     xhr3.setRequestHeader("Authorization", `${token}`)
+//     xhr3.upload.onloadstart = function() {
+//         document.getElementById('status').innerHTML = "Uploading...";
+//     }
+//
+//     xhr3.onreadystatechange = function (){
+//         if (xhr3.readyState === XMLHttpRequest.DONE){
+//             if (xhr3.status === 200){
+//                 document.getElementById('status').innerText = 'Upload successful!';
+//             } else {
+//                 document.getElementById('status').innerText = 'Upload failed!';
+//             }
+//         }
+//     }
+//
+//     xhr3.send(formData);
+// }
+//
+// alert('上传结束');
+
 function uploadFile(){
+
     const fileInput = document.getElementById('fileInput');
     const files = fileInput.files;
-
+    const failList = [];
+    let Fail = false;
     for (let i = 0; i < files.length;i++){
         const formData = new FormData();
-        const uploadUrl = "/manage/upload-music?file-name=" + files[i].name.substring(0, files[i].name.length - 4);
-        formData.append(files[i].name.substring(0, files[i].name.length - 4), files[i])
+        formData.append("file", files[i])
         let xhr3 = new XMLHttpRequest();
-        xhr3.open('POST', uploadUrl, true);
+        xhr3.open('POST', "/manage/upload-music", true);
         xhr3.setRequestHeader("Authorization", `${token}`)
+
         xhr3.upload.onloadstart = function() {
-            document.getElementById('status').innerHTML = "Uploading...";
+            document.getElementById('status').className = 'uploading';
         }
 
         xhr3.onreadystatechange = function (){
-            if (xhr3.readyState === XMLHttpRequest.DONE){
-                if (xhr3.status === 200){
-                    document.getElementById('status').innerText = 'Upload successful!';
-                } else {
-                    document.getElementById('status').innerText = 'Upload failed!';
+            if (xhr3.readyState === XMLHttpRequest.DONE && xhr3.status === 200){
+                let resp = JSON.parse(xhr3.responseText);
+                if (resp.code !== 200){
+                    Fail = true;
+                    failList.push(files[i].name);
                 }
             }
         }
@@ -184,5 +215,17 @@ function uploadFile(){
         xhr3.send(formData);
     }
 
-    alert('上传结束');
+    if (!Fail){
+        document.getElementById('status').className = 'uploadSuccess';
+    }
+    else {
+        document.getElementById('status').className = 'uploadFail';
+        const failSong = document.createElement('ul');
+        for (let i = 0;i < failList.length;i++){
+            const failItem = document.createElement('li');
+            failItem.innerHTML = failList[i];
+            failSong.appendChild(failItem);
+        }
+    }
 }
+

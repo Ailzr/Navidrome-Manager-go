@@ -9,7 +9,7 @@ import (
 func init() {
 	//使用viper读取配置文件信息
 	workDir, _ := os.Getwd()
-	viper.SetConfigName("conf")
+	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(workDir + "/conf")
 	err := viper.ReadInConfig()
